@@ -104,6 +104,6 @@
    <target name="clean">
      <!-- Delete the ${build} and ${docs} directory trees -->
      <delete dir="${build}" />
-     <delete file="messages.ser" />
+     <delete file="mess.json" />
    </target>
 </project>
