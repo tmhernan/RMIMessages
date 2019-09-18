@@ -1,4 +1,4 @@
-//package ser321.assign2.lindquis.client;
+package client;
 
 import server.*;
 
