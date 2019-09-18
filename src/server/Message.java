@@ -23,7 +23,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
     private String [] headers = new String[100];
     //holds message objects sent from the createLibrary method in 
     //Message Library class.
-    private static Vector<Message> messagesReceived = new Vector<Message>(); 
+    private static Vector<Message> messagesReceived = new Vector<Message>(); //from json file
 
     /*Default constructor
      * 
@@ -49,7 +49,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
         this.subject = s;
         this.toUser = u;
         
-        for(int i = 0; i < headers.length; i++) {//not needed
+        for(int i = 0; i < headers.length; i++) {
             if(headers[i] == null) {
                 headers[i] = header;
             }
@@ -75,6 +75,8 @@ public class Message extends Object implements Serializable, MessageServerInterf
         Message n = new Message(name, header, messageBody, date, subject, toUser);
         
         messagesReceived.add(n);
+        printMessageLibrary();
+        System.out.println("SIZE OF MESSAGE LIST: " + messagesReceived.size());
     }
     
     public String getHeader() {
@@ -129,22 +131,16 @@ public class Message extends Object implements Serializable, MessageServerInterf
     // Headers returned are of the form: (from user name @ server and message date)
     // e.g., a message from J Buffett with header: Jimmy.Buffet  Tue 18 Dec 5:32:29 2018
     public String[] getMessageFromHeaders(String toAUserName)throws RemoteException{
+        System.out.println("USERNAME IN MESSAGE CLASS" + toAUserName);
         String [] a = new String [100];
         int i = 0;
-        try{
-        MessageServerImpl lib = new MessageServerImpl();
-        Vector<Message> messages = lib.getMessages();
-        for(Message m : messages) {
+        for(Message m : messagesReceived) {
             if(m.getToUser().equals(toAUserName)) {
                     while(a[i] != null) {
                         i++;
                     }
                     a[i] = m.getHeader();
             }
-        }
-        } catch(Exception e){
-          System.out.println("exception initializing employee store "+e.getMessage());
-           
         }        
         return a;
     }
@@ -154,20 +150,12 @@ public class Message extends Object implements Serializable, MessageServerInterf
      *As above, the header has includes (from user name - server and message date)
      */
     public Message getMessage(String h) throws RemoteException{
-        Message mes = null;
-        try{
-            MessageServerImpl lib = new MessageServerImpl();
-            Vector<Message> messages = lib.getMessages();
-            for(Message m : messages) {
-                if(m.getHeader().equals(h)) {
-                    mes = m;
-                }
+         Message mes = null;
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(h)) {
+                mes = m;
             }
-        }catch(Exception ex){
-            System.out.print("Ex:" + ex.getMessage());
-
         }
-
         return mes;
         
     }
@@ -176,15 +164,62 @@ public class Message extends Object implements Serializable, MessageServerInterf
      * 
      */
     public boolean deleteMessage(String header, String toAUserName) {
+         Boolean rem_elem = false;
+        
+        System.out.println("HEADER TO BE REMOVED: " + header);
+        System.out.println("TOAUSERNAME TO BE REMOVED: " + toAUserName);
+        
         for(Message m : messagesReceived) {
-            if( m.getHeader() == header) {
-                messagesReceived.remove(m);
+            System.out.println("header for this message: " + m.getHeader());
+            System.out.println("toUser for this message: " + m.getToUser());
+            if((m.getHeader().equalsIgnoreCase(header)) && (m.getToUser().equalsIgnoreCase(toAUserName))) {
+                System.out.println("There is a match! ");
+                rem_elem = messagesReceived.remove(m);
+                break;
             }
-            
+            System.out.println("Object removed: " + rem_elem);
+            System.out.println();
         }
-
+        System.out.println("The remaining messages for this " + toAUserName + " in the list are: ");
+        printMessageLibrary(toAUserName);
+        
         return false;
     }
+    //prints out library when a message is added or deleted
+    public void printMessageLibrary(String toAUserName){
+        
+        System.out.println("is list empty: " + messagesReceived.isEmpty());
+        
+        for(Message obj: messagesReceived) {
+            if(obj.getToUser().equalsIgnoreCase(toAUserName)) {    
+                System.out.println("Sent from: " + obj.getName());
+                System.out.println("Header:    " + obj.getHeader());
+                System.out.println("Date:      " + obj.getDate());
+                System.out.println("To User:   " + obj.getToUser());
+                System.out.println("Subject:   " + obj.getSubject());
+                System.out.println("Message Body: "+ obj.messageBody);
 
+            }
+                System.out.println();
+        }
+        System.out.println();
+     }
+    
+    public void printMessageLibrary(){
+        
+        System.out.println("is list empty: " + messagesReceived.isEmpty() + "ALL MESSAGES");
+        
+        for(Message obj: messagesReceived) {
+                System.out.println("Sent from: " + obj.getName());
+                System.out.println("Header:    " + obj.getHeader());
+                System.out.println("Date:      " + obj.getDate());
+                System.out.println("To User:   " + obj.getToUser());
+                System.out.println("Subject:   " + obj.getSubject());
+                System.out.println("Message Body: "+ obj.messageBody);
+
+                System.out.println();
+        }
+        System.out.println();
+     }
 
 }
