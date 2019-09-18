@@ -16,7 +16,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 
-public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
+public class MessageClientGUI extends MessageGui
                            implements ActionListener, ListSelectionListener {
 
    private String user;   // originator of all message sent by this client.
