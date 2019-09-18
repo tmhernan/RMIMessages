@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.rmi.Naming;
+
 
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionEvent;
@@ -25,46 +27,73 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
 
    
 
-   public MessageClientGUI(String hostPort, String regPort, String userId) {
-      super(" ", userId);
-      this.user = userId;
-      this.serverHostPort = hostPort;
+   public MessageClientGUI(String hostId, String regPort, String user) {
+    super("Dr. Lindquist", user);
+    this.user = user;
+    System.out.println("USER IS: " + user);
+    
+    try{   
+          //REMOTE RMI***********************************************
+          //DECLARE MESSAGE OBJECT
+          Message message;
 
+          //USING REMOTE INTERFACE
+          MessageServerInterface server;
 
-      // add this object as an action listener for all menu items.
-      for(int j=0; j<userMenuItems.length; j++){
-         for(int i=0; i<userMenuItems[j].length; i++){
-            userMenuItems[j][i].addActionListener(this);
-         }
-      }
-      
-      // add this object as an action listener for the view buttons
-      deleteJB.addActionListener(this);
-      replyJB.addActionListener(this);
-      sendTextJB.addActionListener(this);
-      sendCipherJB.addActionListener(this);
+          //GETTING REMOTE OBJECT REFERENCE
+          //RMI SERVER IMPLEMENTS MessageServerInterface
+          server = (MessageServerInterface) Naming.lookup(
+                             "rmi://"+hostId+":"+regPort+"/EmployeeServer");
+          
+          System.out.println("Client obtained remote object reference to" +
+                                " the EmployeeServer at:\n"+
+                                 "rmi://"+hostId+":"+regPort+"/EmployeeServer");
+          //REMOTE RMI***********************************************
 
-      // listen for the user to select a row in the list of messages.
-      // When a selection is made, the method valueChanged will be called.
-      messageListJL.addListSelectionListener(this);
-     
-      //getting headers for the user
-      /*
-      MessageLibrary getMail = new MessageLibrary();
-      try {
-          getMail.createLibrary();
-      } catch (FileNotFoundException e1) {
-          e1.printStackTrace();
-      }
-      Message a = new Message();
-      headers = a.getMessageFromHeaders("Tiffany.Hernandez");
-      messageListJL.setSelectedIndex(0); //?
-      for(int i = 0; i < headers.length; i++) {
-          dlm.addElement(headers[i]);
-      }
-      */
+          // add this object as an action listener for all menu items.
+          for(int j=0; j<userMenuItems.length; j++){
+             for(int i=0; i<userMenuItems[j].length; i++){
+                userMenuItems[j][i].addActionListener(this);
+             }
+          }
+          
+          // add this object as an action listener for the view buttons
+          deleteJB.addActionListener(this);
+          replyJB.addActionListener(this);
+          sendTextJB.addActionListener(this);
+          sendCipherJB.addActionListener(this);
+          // listen for the user to select a row in the list of messages.
+          // When a selection is made, the method valueChanged will be called.
+          messageListJL.addListSelectionListener(this);
+         
+          //getting headers for the user
+          /*
+          MessageLibrary getMail = new MessageLibrary();
+          try {
+              getMail.createLibrary();
+          } catch (FileNotFoundException e1) {
+              e1.printStackTrace();
+          }
+          */
+          
+          //Message a = new Message();
+          
+          headers = server.getMessageFromHeaders(user);
 
-      setVisible(true);
+          messageListJL.setSelectedIndex(0); 
+          
+          for(int i = 0; i < headers.length; i++) {
+              if(headers[i] != null) {
+                  System.out.println("header's index for this user are: " + i );
+                  dlm.addElement(headers[i]);
+              }
+          }
+          setVisible(true);
+         
+          //while (true);
+          //System.exit(0);
+      }catch (Exception e) {
+         e.printStackTrace();}
    }
 
    public void valueChanged(ListSelectionEvent e) {
@@ -118,19 +147,19 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
 
 
           }else if(e.getActionCommand().equals("Delete")) {
-             
              int selected = messageListJL.getSelectedIndex();
              
-             dlm.remove(selected);
-             
-             //Delete on back-end
+         
+             //Delete on back-end FIRST
+             Message a = new Message();
              for(int i = 0; i < headers.length; i++) {
                  if (i == selected) {
-                     Message a = new Message();
                      String b = headers[i];
-                     a.deleteMessage(b, "Tiffany.Hernandez");
+                     a.deleteMessage(b, user);
                  }
              }
+          
+              dlm.remove(selected);
              
              //dlm.clear(); //use this to clear the entire list.
              fromJTF.setText(user);
