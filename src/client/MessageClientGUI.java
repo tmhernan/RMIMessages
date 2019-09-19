@@ -18,6 +18,43 @@ import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+/*
+ * Copyright 2019 Tim Lindquist,
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Purpose: demonstrate use of MessageGui class for students to use as a
+ * basis for solving Ser321 Spring 2019 Homework Problems.
+ * The class SampleClient can be used by students in constructing their 
+ * controller for solving homework problems. The view class is MessageGui.
+ *
+ * This problem set uses a swing user interface to implement (secure) messaging.
+ * Messages are communicated to/from message clients, via a common well-known.
+ * server.
+ * Messages can be sent in clear text, or using password based encryption 
+ * (last assignment). For secure messages, the message receiver must enter
+ * the password (encrypted).
+ * The Message tab has two panes. left pane contains a JList of messages
+ * for the user. The right pane is a JTextArea, which can display the
+ * contents of a selected message. This pane is also used to compose
+ * messages that are to be sent.
+ *
+ * Ser321 Principles of Distributed Software Systems
+ * see http://pooh.poly.asu.edu/Ser321
+ * @author Tim Lindquist Tim.Lindquist@asu.edu
+ *         Software Engineering, CIDSE, IAFSE, ASU Poly
+ * @version January 2019
+ */
 
 public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
                            implements ActionListener, ListSelectionListener {
@@ -122,40 +159,66 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
       try{
           if(e.getActionCommand().equals("Exit")) {
              System.exit(0);
-          }else if(e.getActionCommand().equals("Get Mail")){
-              
-              //will refresh stream later
               
           }else if(e.getActionCommand().equals("Reply")) {
-          
+              //DO I NEED TO GET BY HEADER INSTEAD OF INDEX?????
               int index = messageListJL.getSelectedIndex();
               //Message b = new Message();
               String s = dlm.get(index);
               Message a = server.getMessage(s);
               
+              //DATE
               Date today = new Date();
               SimpleDateFormat form = new SimpleDateFormat(patt);
               String todayStr = form.format(today);
-
               dateJTF.setText(todayStr);
+              
+
               fromJTF.setText(user);
               toJTF.setText(a.getName());
               subjectJTF.setText("");
               messageContentJTA.setText("");
               messageStatusJTA.setText("");
+
+          }else if(e.getActionCommand().equals("Send Text")) {
+
+              System.out.println("INSIDE OF THE SENT ACTION");
+              String date = dateJTF.getText();
+              String fromUser = fromJTF.getText();
+              String toUser = toJTF.getText();
+              String subject = subjectJTF.getText();
+              String messageBody = messageContentJTA.getText();
+              String header = (fromUser + "  " + date);
+
+              //add using interface object
+              server.addMessagetoLib(fromUser, header, messageBody, date, subject, toUser);
+
+          }else if(e.getActionCommand().equals("Get Mail")) {
           
+              //MessageLibrary a = new MessageLibrary();         
+              
+              headers = server.getMessageFromHeaders(user);              
+                  
+              for(int i = 0; i < headers.length; i++) {
+                   if(headers[i] != null) {
+                       if(!dlm.contains(headers[i])) {
+                           System.out.println("header's index for this user are: " + i );
+                           dlm.addElement(headers[i]);
+                       }
+                     }    
+              }
 
           }else if(e.getActionCommand().equals("Delete")) {
-          /*
+          
              int selected = messageListJL.getSelectedIndex();
              
          
              //Delete on back-end FIRST
-             Message a = new Message();
+             //Message a = new Message();
              for(int i = 0; i < headers.length; i++) {
                  if (i == selected) {
                      String b = headers[i];
-                     a.deleteMessage(b, user);
+                     server.deleteMessage(b, user);
                  }
              }
           
@@ -167,7 +230,7 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
              subjectJTF.setText("");
              messageContentJTA.setText("");
              messageStatusJTA.setText("");
-          */
+          
           }
           
           // get rid of the waiting cursor

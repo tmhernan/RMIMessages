@@ -9,6 +9,29 @@ import org.json.JSONObject;
 import java.rmi.server.*;
 import java.rmi.*;
 
+/*
+ * Copyright 2019 Tiffany Hernandez,
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Purpose: To hold message objects for the server.
+ *
+ * Ser321 Principles of Distributed Software Systems
+ * see http://pooh.poly.asu.edu/Ser321
+ * @author Tiffany Hernandez Tiffany.Hernandez@asu.edu
+ *         Software Engineering, CIDSE, IAFSE, ASU Poly
+ * @version January 2019
+*/
 
 public class Message extends Object implements java.io.Serializable{
     
@@ -25,7 +48,8 @@ public class Message extends Object implements java.io.Serializable{
     //Message Library class.
     private static Vector<Message> messagesReceived = new Vector<Message>(); //from json file
 
-    /*Default constructor
+    /**
+     * Default Constructor
      * 
      */
     public Message() throws RemoteException {
@@ -37,9 +61,9 @@ public class Message extends Object implements java.io.Serializable{
         this.toUser = null;
     }
     
-    /*Method to be used for the emails sent from the user however
-     * it has been temporarily used for the purposes of this 
-     * assignment to make message objects for the UI.      
+    /**
+     * Parameterized constructor
+     *  @param Items to make a email message
      */
     public Message(String name, String header, String messageBody, String d, String s, String u)throws RemoteException  {     
         this.name = name;
@@ -49,19 +73,29 @@ public class Message extends Object implements java.io.Serializable{
         this.subject = s;
         this.toUser = u;
         
+        //header gets added when creation of message object
         for(int i = 0; i < headers.length; i++) {
             if(headers[i] == null) {
                 headers[i] = header;
+                break;
             }
         }
+        
+        for(int i = 0; i < headers.length; i++) {//not needed
+            if(headers[i] != null) {
+                //System.out.print("TESTING HEADERS" + headers[i]);
+            }
+        }
+
+        
+        messagesReceived.add(this);
+        //printMessageLibrary();
     }
-    /*Method to make a messages received vector list from the 
-     * json imput stream. The UI did not utilize this vector 
-     * but it easily could have. 
-     * 
-     * The information coming through here for this assignment
-     * is received by the createLibrary method that sends string 
-     * input to the toJSONString method which then sends it here.
+
+    /**
+     * Constructor used for the inital emails from json objects.
+     * Takes jsonobject and makes them message objects.
+     *  @param JSONobject
      */
     public Message(JSONObject obj) throws RemoteException {
         
@@ -72,11 +106,9 @@ public class Message extends Object implements java.io.Serializable{
         subject = obj.getString("subject");
         toUser = obj.getString("toUser");
         
-        Message n = new Message(name, header, messageBody, date, subject, toUser);
-        
-        messagesReceived.add(n);
-        printMessageLibrary();
-        System.out.println("SIZE OF MESSAGE LIST: " + messagesReceived.size());
+
+        //printMessageLibrary();
+        //System.out.println("SIZE OF JSON MESSAGE LIST: " + messagesReceived.size());
     }
     
     public String getHeader() {
@@ -113,9 +145,11 @@ public class Message extends Object implements java.io.Serializable{
         return messagesReceived;
     }
     
-    /*This method is to be used for this user's
-     * sent messages. They will be turned into 
-     * json strings then objects to be sent out.
+    /**
+     * Used for the initial email messages to put them
+     * in JSONObjects from strings.
+     * Can be used by a string to make them JSONObjects.
+     * @return JSONObject
      */
     public JSONObject toJSONObject() {
         
@@ -130,65 +164,17 @@ public class Message extends Object implements java.io.Serializable{
         
         return o;
     }
-    /*
-    // getMessageFromHeaders returns a string array of message headers being sent to toAUserName.
-    // Headers returned are of the form: (from user name @ server and message date)
-    // e.g., a message from J Buffett with header: Jimmy.Buffet  Tue 18 Dec 5:32:29 2018
-    public String[] getMessageFromHeaders(String toAUserName)throws RemoteException{
-        System.out.println("USERNAME IN MESSAGE CLASS" + toAUserName);
-        String [] a = new String [100];
-        int i = 0;
-        for(Message m : messagesReceived) {
-            if(m.getToUser().equals(toAUserName)) {
-                    while(a[i] != null) {
-                        i++;
-                    }
-                    a[i] = m.getHeader();
-            }
-        }        
-        return a;
-    }
-    
 
-    public Message getMessage(String h) throws RemoteException{
-         Message mes = null;
-        for(Message m : messagesReceived) {
-            if(m.getHeader().equals(h)) {
-                mes = m;
-            }
-        }
-        return mes;
-        
-    }
-
-    public boolean deleteMessage(String header, String toAUserName) {
-         Boolean rem_elem = false;
-        
-        System.out.println("HEADER TO BE REMOVED: " + header);
-        System.out.println("TOAUSERNAME TO BE REMOVED: " + toAUserName);
-        
-        for(Message m : messagesReceived) {
-            System.out.println("header for this message: " + m.getHeader());
-            System.out.println("toUser for this message: " + m.getToUser());
-            if((m.getHeader().equalsIgnoreCase(header)) && (m.getToUser().equalsIgnoreCase(toAUserName))) {
-                System.out.println("There is a match! ");
-                rem_elem = messagesReceived.remove(m);
-                break;
-            }
-            System.out.println("Object removed: " + rem_elem);
-            System.out.println();
-        }
-        System.out.println("The remaining messages for this " + toAUserName + " in the list are: ");
-        printMessageLibrary(toAUserName);
-        
-        return false;
-    }
-
-    */
-    //prints out library when a message is added or deleted
+    /**
+     * Takes the "to" field in the message object 
+     * and prints off all messages for that user. 
+     * 
+     * Used for debugging on the server side.
+     * @param String
+     */
     public void printMessageLibrary(String toAUserName){
         
-        System.out.println("is list empty: " + messagesReceived.isEmpty());
+        //System.out.println("is list empty: " + messagesReceived.isEmpty());
         
         for(Message obj: messagesReceived) {
             if(obj.getToUser().equalsIgnoreCase(toAUserName)) {    
@@ -204,10 +190,16 @@ public class Message extends Object implements java.io.Serializable{
         }
         System.out.println();
      }
-    
+
+    /**
+     * Prints all messages on the server side. 
+     * 
+     * Used for debugging on the server side.
+     * 
+     */    
     public void printMessageLibrary(){
         
-        System.out.println("is list empty: " + messagesReceived.isEmpty() + "ALL MESSAGES");
+        //System.out.println("is list empty: " + messagesReceived.isEmpty() + "ALL MESSAGES");
         
         for(Message obj: messagesReceived) {
                 System.out.println("Sent from: " + obj.getName());

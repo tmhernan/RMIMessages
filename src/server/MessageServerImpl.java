@@ -23,20 +23,44 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.Date;
 
-
+/*
+ * Copyright 2019 Tiffany Hernandez,
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Purpose: To implement the MessageServerInterface.
+ *
+ * Ser321 Principles of Distributed Software Systems
+ * see http://pooh.poly.asu.edu/Ser321
+ * @author Tiffany Hernandez Tiffany.Hernandez@asu.edu
+ *         Software Engineering, CIDSE, IAFSE, ASU Poly
+ * @version January 2019
+*/
 
 public class MessageServerImpl extends UnicastRemoteObject implements java.io.Serializable, MessageServerInterface{
     private static final String patt = "EEE MMM d K:mm:ss yyyy";
     private String libName; //the name of the message library that has been manually made
 
     private static Vector<Message> messages = new Vector<Message>();//TO HOLD SENT MESSAGES
+    private static Vector<Message> sentMessages = new Vector<Message>();//TO HOLD SENT MESSAGES
+
     Date today = new Date();   
 
 
     /**
-    *
-    *
-    */
+     * Default Constructor
+     * @throws RemoteException
+     */
     public MessageServerImpl() throws RemoteException {
       try{
         	this.libName = "noname";
@@ -46,7 +70,13 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
       }
 
      }  
-    
+     
+     /**
+     * Constructor
+     * Used to read in json file to populate default messages.
+     * @param String
+     * @throws RemoteException
+     */
     public MessageServerImpl(String fn) throws RemoteException{
         try {
              FileInputStream in = new FileInputStream(fn);
@@ -54,18 +84,19 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
              String [] dates = JSONObject.getNames(obj);
              
              //putting dates (library names) into a string 
+             /*
              //This is actually printing off headers from each library
-             System.out.print("dates are: ");
+             //System.out.print("dates are: ");
              for(int j=0; j< dates.length; j++){
                 System.out.print(dates[j]+", ");
              }
-
+			 */
              for (int i=0; i< dates.length; i++){
                    Message aMessage = new Message((JSONObject)obj.getJSONObject(dates[i]));   
              }
 
         }catch(Exception ex){
-            System.out.print("Ex:" + ex.getMessage());
+            //System.out.print("Ex:" + ex.getMessage());
         }
     }
     
@@ -73,7 +104,11 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
         libName = aName;
      }
 
-    /*Method to put a json message library in a string.
+     /**
+     * Json toString
+     * Used to turn a string into a json string.
+     * Used to populate default email messages.
+     * @return String
      * 
      */
     public String toJSONString(){
@@ -86,32 +121,38 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
             obj.put(m.getHeader(), m.toJSONObject());
         }
         r = obj.toString();
-        System.out.println("STRING toJSONString" + r);
+        //System.out.println("STRING toJSONString" + r);
 
         return r;
      }
     
-    /*This will be used for sent messages but for this assignment was utilized 
-     * to put messages for this user to read.
+     /**
+     * Takes strings and makes them into Message Objects. 
+     * Then, adds them to the sever's list of messages.
+     * 
+     * Used for the "Send Text" functionality. It's also
+     * a shared method included in the interface.
+     * @param Attributes that make up a Message Object
+     * @throws RemoteException
      */
     public void addMessagetoLib(String name, String header, String message, String d, String s, String t) throws RemoteException {
         
-        messages.addElement(new Message(name, header, message, d, s, t ));
+        if(libName.equals("Tue 18 Dec 5:32:29 2019")){
+            messages.addElement(new Message(name, header, message, d, s, t ));
+        }else {
+        	//When a user selects "sent," a message object is made:
+        	//Headers then get added to the headers string in the Message class
+            sentMessages.addElement(new Message(name, header, message, d, s, t ));
+        }
         
     }
     
-    public void printMessageLibrary(){
-
-        System.out.println("Message Library " + libName + " has the following headers: ");
-        for(Enumeration e = messages.elements(); e.hasMoreElements();) {
-            System.out.print((((Message) e.nextElement()).getHeader()) + ", ");
-        }
-        System.out.println();
-     }
     
-     /*
-     *create initial library of messages
-     *
+     /**
+     * Initiates messages by sending strings to become json
+     * objects then adds them to the server's list of messages.
+     * Used as default inbox messages for the users. 
+     * @throws RemoteException
      */
     public void createLibrary() throws RemoteException{
     	try{
@@ -153,7 +194,7 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
 		        mailIntake.addMessagetoLib("Moira Rose", h3, message3, d3, s3, t1);
 		        mailIntake.addMessagetoLib("Johnny Rose", h4, message4, d4, s4, t1);
 		        
-		        System.out.print("json string"+ mailIntake.toJSONString());
+		        //System.out.print("json string"+ mailIntake.toJSONString());
 		        
 		        PrintWriter out = new PrintWriter("mess.json");
 		        
@@ -162,17 +203,29 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
 		        //to the message method to get deserialized.
 		        out.println(mailIntake.toJSONString());
 		        out.close();
-		        System.out.println("Done exporting group in json to messages.json");
+		        //System.out.println("Done exporting group in json to messages.json");
 		        
 		        //creating actual library from file that is to be read in later
-		        MessageServerImpl mes = new MessageServerImpl("mess.json"); 
+		        MessageServerImpl mes = new MessageServerImpl("mess.json");
+
+		        Message m = new Message();
+		        System.out.println("THE FOLLOWING MESSAGES HAVE BEEN IMPORTED FROM A JSON FILE: ");
+		        m.printMessageLibrary();
+
 		}catch(Exception e){
 			System.out.println("exception: "+e.getMessage());
-       		e.printStackTrace();
+       		//e.printStackTrace();
 		}   
     }
-    
-        @Override
+     /**
+     * Gets the array of strings that holds all headers for 
+     * messages on the server's side. Then fiters out those 
+     * headings according to the user passed in. 
+     * Used so the GUI can filter out messages for that user.
+     * @param String
+     * @throws RemoteException
+     * @returns String Array
+     */
     public String[] getMessageFromHeaders(String toAUserName) throws RemoteException{
 
         System.out.println("USERNAME IN MESSAGE CLASS" + toAUserName);
@@ -192,9 +245,15 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
         }        
         return a;
     }
-    /* 
-     * getMessage returns the Message having the corresponding header. Assume headers are unique.
-     *As above, the header has includes (from user name - server and message date)
+     /**
+     * Returns the message object with a matching header from
+     * the list of messages on the server side. 
+     * It's also a shared method for the interface.
+     * Used so the GUI can show all message components when a 
+     * user wishes to see it.
+     * @param String
+     * @throws RemoteException
+     * @returns Message Object
      */
     public Message getMessage(String header)throws RemoteException {
         
@@ -209,9 +268,13 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
         return mes;
     }
     
-    /*
-     * Method deletes the message from the MessagesReceived vector list
-     * 
+     /**
+     * Deletes a message object on the back end, off
+     * of the list of messages on the servers side.
+     * It is also a shared method on the interface.
+     * @param Strings
+     * @throws RemoteException
+     * @returns boolean
      */
     @Override
     public boolean deleteMessage(String header, String toAUserName) throws RemoteException{
@@ -229,9 +292,9 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
             if((m.getHeader().equalsIgnoreCase(header)) && (m.getToUser().equalsIgnoreCase(toAUserName))) {
                 System.out.println("There is a match! ");
                 rem_elem = messagesReceived.remove(m);
+                System.out.println("Object removed: " + rem_elem);
                 break;
             }
-            System.out.println("Object removed: " + rem_elem);
             System.out.println();
         }
         System.out.println("The remaining messages for this " + toAUserName + " in the list are: ");
