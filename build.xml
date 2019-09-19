@@ -7,6 +7,9 @@
    <property name="lib" value="./lib" />
    <property name="userId" value="Tim.Lindquist" />
    <property name="parentDir" value="${user.dir}${file.separator}" />
+   <property name="hostId" value="localhost" />
+   <property name="regPort" value="1099" />
+
 
    <!-- CLASSPATH -->
    <path id="compile.classpath">
@@ -67,9 +70,9 @@
            description="Start client">
          <echo message="user.dir is: ${user.dir}"/>
          <echo message="command line client: java -cp classes -Djava.security.policy=policyClient RMIClient ${hostId} ${regPort} ${userId}" />
-         <java classname="client.MessageClientGUI" fork="yes">
+         <java classname="ser321.assign2.lindquis.client.MessageClientGUI" fork="yes">
            <classpath refid="compile.classpath"/>
-            <!--sysproperty key="java.security.policy" value="policyClient"/> -->
+            <sysproperty key="java.security.policy" value="policyClient"/> 
            <arg value="${hostId}"/> 
            <arg value="${regPort}"/>
            <arg value="${userId}"/>
@@ -84,12 +87,12 @@
        <exec dir="${basedir}"
              executable="rmiregistry">
          <arg value="${regPort}"/>
-         <env key="CLASSPATH" path="${basedir}/${build}"/>
+      <env key="CLASSPATH" path="${basedir}/${build};${basedir}/${lib}/json.jar;${basedir}/${lib}/assign2Gui.jar"/>
        </exec>
        <sequential>
          <sleep seconds="10"/>
-         <java classname="server.MessageServerImpl" fork="yes">
-<!--           <sysproperty key="java.security.policy" value="policyServer"/> -->
+         <java classname="ser321.assign2.lindquis.server.MessageServerImpl" fork="yes">
+        <sysproperty key="java.security.policy" value="policyServer"/> 
            <sysproperty key="java.rmi.server.hostname" value="${hostId}"/>
            <arg value="${hostId}"/> 
            <arg value="${regPort}"/> 

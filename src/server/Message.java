@@ -1,4 +1,4 @@
-package server;
+package ser321.assign2.lindquis.server;
 
 
 import java.io.Serializable;
@@ -10,7 +10,7 @@ import java.rmi.server.*;
 import java.rmi.*;
 
 
-public class Message extends Object implements Serializable, MessageServerInterface{
+public class Message extends Object implements java.io.Serializable{
     
     private static final long serialVersionUID = 3415902006212375222L;
     private String name;
@@ -28,7 +28,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
     /*Default constructor
      * 
      */
-    public Message() {
+    public Message() throws RemoteException {
         this.name = null;
         this.header = null;
         this.messageBody = null;
@@ -41,7 +41,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
      * it has been temporarily used for the purposes of this 
      * assignment to make message objects for the UI.      
      */
-    public Message(String name, String header, String messageBody, String d, String s, String u) {     
+    public Message(String name, String header, String messageBody, String d, String s, String u)throws RemoteException  {     
         this.name = name;
         this.header = header;
         this.messageBody = messageBody;
@@ -63,7 +63,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
      * is received by the createLibrary method that sends string 
      * input to the toJSONString method which then sends it here.
      */
-    public Message(JSONObject obj) {
+    public Message(JSONObject obj) throws RemoteException {
         
         name = obj.getString("name");
         header = obj.getString("header");
@@ -108,6 +108,10 @@ public class Message extends Object implements Serializable, MessageServerInterf
         
         return toUser;
     }
+
+    public Vector getMessagesReceived(){
+        return messagesReceived;
+    }
     
     /*This method is to be used for this user's
      * sent messages. They will be turned into 
@@ -126,7 +130,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
         
         return o;
     }
-    
+    /*
     // getMessageFromHeaders returns a string array of message headers being sent to toAUserName.
     // Headers returned are of the form: (from user name @ server and message date)
     // e.g., a message from J Buffett with header: Jimmy.Buffet  Tue 18 Dec 5:32:29 2018
@@ -145,10 +149,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
         return a;
     }
     
-    /* 
-     * getMessage returns the Message having the corresponding header. Assume headers are unique.
-     *As above, the header has includes (from user name - server and message date)
-     */
+
     public Message getMessage(String h) throws RemoteException{
          Message mes = null;
         for(Message m : messagesReceived) {
@@ -159,10 +160,7 @@ public class Message extends Object implements Serializable, MessageServerInterf
         return mes;
         
     }
-    /*
-     * Method deletes the message from the MessagesReceived vector list
-     * 
-     */
+
     public boolean deleteMessage(String header, String toAUserName) {
          Boolean rem_elem = false;
         
@@ -185,6 +183,8 @@ public class Message extends Object implements Serializable, MessageServerInterf
         
         return false;
     }
+
+    */
     //prints out library when a message is added or deleted
     public void printMessageLibrary(String toAUserName){
         

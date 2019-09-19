@@ -1,6 +1,7 @@
-package server;
+package ser321.assign2.lindquis.server;
 
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 
 public interface MessageServerInterface extends Remote {

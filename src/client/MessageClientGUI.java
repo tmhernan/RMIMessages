@@ -1,6 +1,9 @@
-package client;
+package ser321.assign2.lindquis.client;
 
-import server.*;
+
+import ser321.assign2.lindquis.server.MessageServerInterface;
+import ser321.assign2.lindquis.server.Message;
+
 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
@@ -16,14 +19,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 
-public class MessageClientGUI extends MessageGui
+public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
                            implements ActionListener, ListSelectionListener {
 
    private String user;   // originator of all message sent by this client.
-   private String serverHostPort; // such as lindquisrpi.local:8080
+   //private String serverHostPort; // such as lindquisrpi.local:8080
    private static final String patt = "EEE MMM d K:mm:ss yyyy";
    private String [] headers = new String[100];
    DefaultListModel<String> dlm = (DefaultListModel<String>)messageListJL.getModel();
+   private MessageServerInterface server;
 
    
 
@@ -31,14 +35,16 @@ public class MessageClientGUI extends MessageGui
     super("Dr. Lindquist", user);
     this.user = user;
     System.out.println("USER IS: " + user);
+
+
+    //USING REMOTE INTERFACE
+    //MessageServerInterface server;
     
     try{   
           //REMOTE RMI***********************************************
           //DECLARE MESSAGE OBJECT
           Message message;
 
-          //USING REMOTE INTERFACE
-          MessageServerInterface server;
 
           //GETTING REMOTE OBJECT REFERENCE
           //RMI SERVER IMPLEMENTS MessageServerInterface
@@ -64,19 +70,7 @@ public class MessageClientGUI extends MessageGui
           sendCipherJB.addActionListener(this);
           // listen for the user to select a row in the list of messages.
           // When a selection is made, the method valueChanged will be called.
-          messageListJL.addListSelectionListener(this);
-         
-          //getting headers for the user
-          /*
-          MessageLibrary getMail = new MessageLibrary();
-          try {
-              getMail.createLibrary();
-          } catch (FileNotFoundException e1) {
-              e1.printStackTrace();
-          }
-          */
-          
-          //Message a = new Message();
+          messageListJL.addListSelectionListener(this);                    
           
           headers = server.getMessageFromHeaders(user);
 
@@ -88,24 +82,27 @@ public class MessageClientGUI extends MessageGui
                   dlm.addElement(headers[i]);
               }
           }
+          
           setVisible(true);
          
-          //while (true);
-          //System.exit(0);
+      
       }catch (Exception e) {
          e.printStackTrace();}
    }
 
    public void valueChanged(ListSelectionEvent e) {
+    
        int index = messageListJL.getSelectedIndex();
      try{  
          if (!e.getValueIsAdjusting()){
              if(index > -1) {
                  System.out.println("You selected messageList item: "
                          + messageListJL.getSelectedIndex()); 
-                 Message b = new Message();
+                 //Message b = new Message();
                  String s = dlm.get(index);
-                 Message a = b.getMessage(s);
+
+                 Message a = server.getMessage(s);
+                 
                  messageContentJTA.setText(a.getMessageBody());
                  fromJTF.setText(a.getName());
                  toJTF.setText(a.getToUser());
@@ -116,6 +113,7 @@ public class MessageClientGUI extends MessageGui
       }catch(Exception ex){
           ex.printStackTrace();
       }
+      
     }
 
    public void actionPerformed(ActionEvent e) {
@@ -129,11 +127,12 @@ public class MessageClientGUI extends MessageGui
               //will refresh stream later
               
           }else if(e.getActionCommand().equals("Reply")) {
-                      
+          
               int index = messageListJL.getSelectedIndex();
-              Message b = new Message();
+              //Message b = new Message();
               String s = dlm.get(index);
-              Message a = b.getMessage(s);
+              Message a = server.getMessage(s);
+              
               Date today = new Date();
               SimpleDateFormat form = new SimpleDateFormat(patt);
               String todayStr = form.format(today);
@@ -144,9 +143,10 @@ public class MessageClientGUI extends MessageGui
               subjectJTF.setText("");
               messageContentJTA.setText("");
               messageStatusJTA.setText("");
-
+          
 
           }else if(e.getActionCommand().equals("Delete")) {
+          /*
              int selected = messageListJL.getSelectedIndex();
              
          
@@ -167,6 +167,7 @@ public class MessageClientGUI extends MessageGui
              subjectJTF.setText("");
              messageContentJTA.setText("");
              messageStatusJTA.setText("");
+          */
           }
           
           // get rid of the waiting cursor

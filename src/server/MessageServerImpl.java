@@ -1,4 +1,4 @@
-package server;
+package ser321.assign2.lindquis.server;
 
 
 import java.io.FileInputStream;
@@ -25,7 +25,7 @@ import java.util.Date;
 
 
 
-public class MessageServerImpl extends UnicastRemoteObject{
+public class MessageServerImpl extends UnicastRemoteObject implements java.io.Serializable, MessageServerInterface{
     private static final String patt = "EEE MMM d K:mm:ss yyyy";
     private String libName; //the name of the message library that has been manually made
 
@@ -94,7 +94,7 @@ public class MessageServerImpl extends UnicastRemoteObject{
     /*This will be used for sent messages but for this assignment was utilized 
      * to put messages for this user to read.
      */
-    public void addMessagetoLib(String name, String header, String message, String d, String s, String t) {
+    public void addMessagetoLib(String name, String header, String message, String d, String s, String t) throws RemoteException {
         
         messages.addElement(new Message(name, header, message, d, s, t ));
         
@@ -113,60 +113,136 @@ public class MessageServerImpl extends UnicastRemoteObject{
      *create initial library of messages
      *
      */
-    public void createLibrary() throws FileNotFoundException, RemoteException {
-        MessageServerImpl mailIntake = new MessageServerImpl();
-        mailIntake.setLibName("Tue 18 Dec 5:32:29 2019");
-        
-        String message1 = "I see where you are going with this. "
-                + "Um, I do drink red wine. But I also drink white wine. "
-                + "And I have been known to sample the occasional rosÃ©. And"
-                + " a couple summers back I tried a merlot that used to be"
-                + " a chardonnay, which got a bit complicated.";
-        String h1 = "David.Rose  Tue 18 Dec 5:32:29 2018";
-        String d1 = "Tue 18 Dec 5:32:29 2018";
-        String s1 = "Please No";
-        
-        String message2 =  "I miss being surrounded by loose acquantances"
-                + "who think I am funny and smart and charming";
-        String h2 = "Alexis.Rose  Tue 18 Jan 5:32:29 2018";
-        String d2 = "Tue 18 Jan 5:32:29 2018";
-        String s2 = "Ew David";
-        
-        String message3 = "David, stop acting like a disgruntled pelican.";
-        String h3 = "Moira.Rose  Tue 18 Feb 5:32:29 2018";
-        String d3 = "Tue 18 Feb 5:32:29 2018";
-        String s3 = "No I will Not";
-        
-        String message4 = "You better remember which nails you pulled those"
-                + " wigs from because your mother keeps a spreadsheet.";
-        String h4 = "Johnny.Rose  Tue 18 Mar 5:32:29 2018";
-        String d4 = "Tue 18 Mar 5:32:29 2018";
-        String s4 = "We're getting out";
-        
-        String t = "Tim.Lindquist";
-        String t1 = "Jimmy.Buffett";
+    public void createLibrary() throws RemoteException{
+    	try{
+		        MessageServerImpl mailIntake = new MessageServerImpl();
+		        mailIntake.setLibName("Tue 18 Dec 5:32:29 2019");
+		        
+		        String message1 = "I see where you are going with this. "
+		                + "Um, I do drink red wine. But I also drink white wine. "
+		                + "And I have been known to sample the occasional rosÃ©. And"
+		                + " a couple summers back I tried a merlot that used to be"
+		                + " a chardonnay, which got a bit complicated.";
+		        String h1 = "David.Rose  Tue 18 Dec 5:32:29 2018";
+		        String d1 = "Tue 18 Dec 5:32:29 2018";
+		        String s1 = "Please No";
+		        
+		        String message2 =  "I miss being surrounded by loose acquantances"
+		                + "who think I am funny and smart and charming";
+		        String h2 = "Alexis.Rose  Tue 18 Jan 5:32:29 2018";
+		        String d2 = "Tue 18 Jan 5:32:29 2018";
+		        String s2 = "Ew David";
+		        
+		        String message3 = "David, stop acting like a disgruntled pelican.";
+		        String h3 = "Moira.Rose  Tue 18 Feb 5:32:29 2018";
+		        String d3 = "Tue 18 Feb 5:32:29 2018";
+		        String s3 = "No I will Not";
+		        
+		        String message4 = "You better remember which nails you pulled those"
+		                + " wigs from because your mother keeps a spreadsheet.";
+		        String h4 = "Johnny.Rose  Tue 18 Mar 5:32:29 2018";
+		        String d4 = "Tue 18 Mar 5:32:29 2018";
+		        String s4 = "We're getting out";
+		        
+		        String t = "Tim.Lindquist";
+		        String t1 = "Jimmy.Buffett";
 
-        //SIMULATING SEND FUNCTION
-        mailIntake.addMessagetoLib("David Rose", h1, message1, d1, s1, t);
-        mailIntake.addMessagetoLib("Alexis Rose", h2, message2, d2, s2, t);
-        mailIntake.addMessagetoLib("Moira Rose", h3, message3, d3, s3, t1);
-        mailIntake.addMessagetoLib("Johnny Rose", h4, message4, d4, s4, t1);
+		        //SIMULATING SEND FUNCTION
+		        mailIntake.addMessagetoLib("David Rose", h1, message1, d1, s1, t);
+		        mailIntake.addMessagetoLib("Alexis Rose", h2, message2, d2, s2, t);
+		        mailIntake.addMessagetoLib("Moira Rose", h3, message3, d3, s3, t1);
+		        mailIntake.addMessagetoLib("Johnny Rose", h4, message4, d4, s4, t1);
+		        
+		        System.out.print("json string"+ mailIntake.toJSONString());
+		        
+		        PrintWriter out = new PrintWriter("mess.json");
+		        
+		        //writes to the folder a json object
+		        //And it also sends the message object in json
+		        //to the message method to get deserialized.
+		        out.println(mailIntake.toJSONString());
+		        out.close();
+		        System.out.println("Done exporting group in json to messages.json");
+		        
+		        //creating actual library from file that is to be read in later
+		        MessageServerImpl mes = new MessageServerImpl("mess.json"); 
+		}catch(Exception e){
+			System.out.println("exception: "+e.getMessage());
+       		e.printStackTrace();
+		}   
+    }
+    
+        @Override
+    public String[] getMessageFromHeaders(String toAUserName) throws RemoteException{
+
+        System.out.println("USERNAME IN MESSAGE CLASS" + toAUserName);
         
-        System.out.print("json string"+ mailIntake.toJSONString());
+        String [] a = new String [100];
+        Message v = new Message();
+        Vector<Message> messagesReceived = v.getMessagesReceived();
         
-        PrintWriter out = new PrintWriter("mess.json");
+        int i = 0;
+        for(Message m : messagesReceived) {
+            if(m.getToUser().equals(toAUserName)) {
+                    while(a[i] != null) {
+                        i++;
+                    }
+                    a[i] = m.getHeader();
+            }
+        }        
+        return a;
+    }
+    /* 
+     * getMessage returns the Message having the corresponding header. Assume headers are unique.
+     *As above, the header has includes (from user name - server and message date)
+     */
+    public Message getMessage(String header)throws RemoteException {
         
-        //writes to the folder a json object
-        //And it also sends the message object in json
-        //to the message method to get deserialized.
-        out.println(mailIntake.toJSONString());
-        out.close();
-        System.out.println("Done exporting group in json to messages.json");
+        Message mes = null;
+        Message v = new Message();
+        Vector<Message> messagesReceived = v.getMessagesReceived();
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(header)) {
+                mes = m;
+            }
+        }
+        return mes;
+    }
+    
+    /*
+     * Method deletes the message from the MessagesReceived vector list
+     * 
+     */
+    @Override
+    public boolean deleteMessage(String header, String toAUserName) throws RemoteException{
+        Boolean rem_elem = false;
         
-        //creating actual library from file that is to be read in later
-        MessageServerImpl mes = new MessageServerImpl("mess.json");    
+        System.out.println("HEADER TO BE REMOVED: " + header);
+        System.out.println("TOAUSERNAME TO BE REMOVED: " + toAUserName);
+        
+        Message v = new Message();
+        Vector<Message> messagesReceived = v.getMessagesReceived();
+        
+        for(Message m : messagesReceived) {
+            System.out.println("header for this message: " + m.getHeader());
+            System.out.println("toUser for this message: " + m.getToUser());
+            if((m.getHeader().equalsIgnoreCase(header)) && (m.getToUser().equalsIgnoreCase(toAUserName))) {
+                System.out.println("There is a match! ");
+                rem_elem = messagesReceived.remove(m);
+                break;
+            }
+            System.out.println("Object removed: " + rem_elem);
+            System.out.println();
+        }
+        System.out.println("The remaining messages for this " + toAUserName + " in the list are: ");
+        
+        v.printMessageLibrary(toAUserName);
+        
+        return false;
     }
 
+
+    
     public static void main(String args[]){
       try {
          String hostId="localhost";
@@ -176,10 +252,12 @@ public class MessageServerImpl extends UnicastRemoteObject{
             regPort=args[1];
          }
          //System.setSecurityManager(new RMISecurityManager()); // rmisecmgr deprecated
-         MessageServerImpl obj = new MessageServerImpl();
+         MessageServerInterface obj = new MessageServerImpl();
 
          //Initialize the library of messages:
-         obj.createLibrary();
+         MessageServerImpl start = new MessageServerImpl();
+         start.createLibrary();
+
          Naming.rebind("rmi://"+hostId+":"+regPort+"/EmployeeServer", obj);
          System.out.println("Server bound in registry as: "+
                             "rmi://"+hostId+":"+regPort+"/EmployeeServer");
@@ -188,8 +266,7 @@ public class MessageServerImpl extends UnicastRemoteObject{
       }
 
     }
-
-
+    
 
 }
 
