@@ -1,23 +1,38 @@
-package ser321.assign2.lindquis.server;
+package server;
 
-import java.rmi.Remote;
-import java.rmi.RemoteException;
+import java.util.Vector;
 
 /**
 * Shared interface between server and client(s)
 * 
 */
-public interface MessageServerInterface extends Remote {
+public interface MessageServerInterface {
 
 
-    public String[] getMessageFromHeaders(String toAUserName) throws RemoteException;
+    public String[] getMessageFromHeaders(String toAUserName);
 
-    public Message getMessage(String header) throws RemoteException;
+    public Message getMessage(String header);
 
-    public boolean deleteMessage(String header, String toAUserName) throws RemoteException;
+    public boolean deleteMessage(String header, String toAUserName);
 
-    public void addMessagetoLib(String name, String header, String message, String d, String s, String t) throws RemoteException;
+    //not needed anymore?
+    public void addMessagetoLib(String name, String header, String message, String d, String s, String t); 
 
+    public boolean addMessagetoLib(Message m);
     
+    
+    //public boolean getHeader();
+
+    public String getMessageBody(String header);
+
+    public String getDate(String header);
+
+    public String getSubject(String header);
+
+    public String getName(String header);
+
+    public String getToUser(String header);
+
+    public Vector<Message> getMessagesReceived();
 }
 

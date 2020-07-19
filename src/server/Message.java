@@ -1,13 +1,8 @@
-package ser321.assign2.lindquis.server;
+package server;
 
-
-import java.io.Serializable;
 import java.util.Vector;
 
 import org.json.JSONObject;
-
-import java.rmi.server.*;
-import java.rmi.*;
 
 /*
  * Copyright 2019 Tiffany Hernandez,
@@ -52,7 +47,7 @@ public class Message extends Object implements java.io.Serializable{
      * Default Constructor
      * 
      */
-    public Message() throws RemoteException {
+    public Message() {
         this.name = null;
         this.header = null;
         this.messageBody = null;
@@ -65,7 +60,7 @@ public class Message extends Object implements java.io.Serializable{
      * Parameterized constructor
      *  @param Items to make a email message
      */
-    public Message(String name, String header, String messageBody, String d, String s, String u)throws RemoteException  {     
+    public Message(String name, String header, String messageBody, String d, String s, String u)  {     
         this.name = name;
         this.header = header;
         this.messageBody = messageBody;
@@ -97,7 +92,7 @@ public class Message extends Object implements java.io.Serializable{
      * Takes jsonobject and makes them message objects.
      *  @param JSONobject
      */
-    public Message(JSONObject obj) throws RemoteException {
+    public Message(JSONObject obj) {
         
         name = obj.getString("name");
         header = obj.getString("header");
@@ -111,10 +106,16 @@ public class Message extends Object implements java.io.Serializable{
         //System.out.println("SIZE OF JSON MESSAGE LIST: " + messagesReceived.size());
     }
     
+    public String[] getHeaders() {
+        
+        return headers;
+    }
+    
     public String getHeader() {
         
         return header;
     }
+    
     
     public String getMessageBody(){
         
@@ -141,7 +142,7 @@ public class Message extends Object implements java.io.Serializable{
         return toUser;
     }
 
-    public Vector getMessagesReceived(){
+    public Vector<Message> getMessagesReceived(){
         return messagesReceived;
     }
     
@@ -152,6 +153,7 @@ public class Message extends Object implements java.io.Serializable{
      * @return JSONObject
      */
     public JSONObject toJSONObject() {
+        
         
         JSONObject o = new JSONObject();
         o.put("name", name);
@@ -164,7 +166,19 @@ public class Message extends Object implements java.io.Serializable{
         
         return o;
     }
-
+    
+    public String toJsonString(){
+        String ret = "";
+        try{
+           ret = this.toJSONObject().toString();
+        }catch (Exception ex){
+           System.out.println(this.getClass().getSimpleName()+
+                              ": error converting to json string");
+        }
+        return ret;
+     }    
+    
+   
     /**
      * Takes the "to" field in the message object 
      * and prints off all messages for that user. 

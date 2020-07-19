@@ -1,22 +1,26 @@
-package ser321.assign2.lindquis.client;
+package client;
+
+//package ser321.assign2.lindquis.client;
 
 
-import ser321.assign2.lindquis.server.MessageServerInterface;
-import ser321.assign2.lindquis.server.Message;
+//import ser321.assign2.lindquis.server.MessageServerInterface;
+//import ser321.assign2.lindquis.server.Message;
 
 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.rmi.Naming;
-
 
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import ser321.assign2.lindquis.client.MessageGui;
+import server.Message;
 
 /*
  * Copyright 2019 Tim Lindquist,
@@ -56,7 +60,10 @@ import javax.swing.event.ListSelectionListener;
  * @version January 2019
  */
 
-public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
+//Reading in 
+
+
+public class MessageClientGUI extends MessageGui
                            implements ActionListener, ListSelectionListener {
 
    private String user;   // originator of all message sent by this client.
@@ -64,36 +71,35 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
    private static final String patt = "EEE MMM d K:mm:ss yyyy";
    private String [] headers = new String[100];
    DefaultListModel<String> dlm = (DefaultListModel<String>)messageListJL.getModel();
-   private MessageServerInterface server;
-
+   MessageLibraryTcpProxy  sc;
    
 
-   public MessageClientGUI(String hostId, String regPort, String user) {
+   public MessageClientGUI(String host, String port, String user) {
     super("Dr. Lindquist", user);
     this.user = user;
     System.out.println("USER IS: " + user);
-
-
-    //USING REMOTE INTERFACE
-    //MessageServerInterface server;
     
     try{   
-          //REMOTE RMI***********************************************
-          //DECLARE MESSAGE OBJECT
-          Message message;
+        
+        String url = "http://"+host+":"+port+"/";
+        System.out.println("Opening connection to: "+url);
+        
+        //Connect to proxy. Open input stream to read
+        //input from server
+        MessageLibraryTcpProxy  sc = (MessageLibraryTcpProxy )new MessageLibraryTcpProxy (host, Integer.parseInt(port));
+        BufferedReader stdin = new BufferedReader(
+           new InputStreamReader(System.in));
+        
+        /*INPUTSTREAM READ IN**************NOT NECESSARY?
+        //read in stream
+        String inStr = stdin.readLine();
+        StringTokenizer streamSt = new StringTokenizer(inStr);
+        
+        //always reding in
+        String opn = streamSt.nextToken();
+        
+        /*INPUTSTREAM READ IN**************NOT NECESSARY? */
 
-
-          //GETTING REMOTE OBJECT REFERENCE
-          //RMI SERVER IMPLEMENTS MessageServerInterface
-          server = (MessageServerInterface) Naming.lookup(
-                             "rmi://"+hostId+":"+regPort+"/EmployeeServer");
-          
-          System.out.println("Client obtained remote object reference to" +
-                                " the EmployeeServer at:\n"+
-                                 "rmi://"+hostId+":"+regPort+"/EmployeeServer");
-          //REMOTE RMI***********************************************
-
-          // add this object as an action listener for all menu items.
           for(int j=0; j<userMenuItems.length; j++){
              for(int i=0; i<userMenuItems[j].length; i++){
                 userMenuItems[j][i].addActionListener(this);
@@ -105,11 +111,14 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
           replyJB.addActionListener(this);
           sendTextJB.addActionListener(this);
           sendCipherJB.addActionListener(this);
+          
           // listen for the user to select a row in the list of messages.
           // When a selection is made, the method valueChanged will be called.
           messageListJL.addListSelectionListener(this);                    
           
-          headers = server.getMessageFromHeaders(user);
+          //calling to get email headers from through client 
+          //proxy to server proxy
+          headers = sc.getMessageFromHeaders(user);
 
           messageListJL.setSelectedIndex(0); 
           
@@ -138,13 +147,13 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
                  //Message b = new Message();
                  String s = dlm.get(index);
 
-                 Message a = server.getMessage(s);
+                 //Message a = sc.getMessage(s);
                  
-                 messageContentJTA.setText(a.getMessageBody());
-                 fromJTF.setText(a.getName());
-                 toJTF.setText(a.getToUser());
-                 subjectJTF.setText(a.getSubject());
-                 dateJTF.setText(a.getDate());
+                 messageContentJTA.setText(sc.getMessageBody(s));
+                 fromJTF.setText(sc.getName(s));
+                 toJTF.setText(sc.getToUser(s));
+                 subjectJTF.setText(sc.getSubject(s));
+                 dateJTF.setText(sc.getDate(s));
                }
           }
       }catch(Exception ex){
@@ -163,9 +172,11 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
           }else if(e.getActionCommand().equals("Reply")) {
               //DO I NEED TO GET BY HEADER INSTEAD OF INDEX?????
               int index = messageListJL.getSelectedIndex();
-              //Message b = new Message();
+
               String s = dlm.get(index);
-              Message a = server.getMessage(s);
+              
+              //calling proxy
+              Message a = sc.getMessage(s);
               
               //DATE
               Date today = new Date();
@@ -190,14 +201,13 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
               String messageBody = messageContentJTA.getText();
               String header = (fromUser + "  " + date);
 
-              //add using interface object
-              server.addMessagetoLib(fromUser, header, messageBody, date, subject, toUser);
+              //calling proxy
+              sc.addMessagetoLib(fromUser, header, messageBody, date, subject, toUser);
 
           }else if(e.getActionCommand().equals("Get Mail")) {
           
-              //MessageLibrary a = new MessageLibrary();         
-              
-              headers = server.getMessageFromHeaders(user);              
+              //calling proxy
+              headers = sc.getMessageFromHeaders(user);              
                   
               for(int i = 0; i < headers.length; i++) {
                    if(headers[i] != null) {
@@ -218,7 +228,9 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
              for(int i = 0; i < headers.length; i++) {
                  if (i == selected) {
                      String b = headers[i];
-                     server.deleteMessage(b, user);
+                     
+                     //calling proxy
+                     sc.deleteMessage(b, user);
                  }
              }
           
@@ -242,17 +254,17 @@ public class MessageClientGUI extends ser321.assign2.lindquis.client.MessageGui
    }
 
    public static void main(String args[]) {
-      String hostId="localhost";
-      String regPort="2222";
-      String userId = "tmhernan";
-      if (args.length >= 3){
-         hostId=args[0];
-         regPort=args[1];
-         userId=args[2];
-      }
-      //System.setSecurityManager(new RMISecurityManager());
-      MessageClientGUI rmiclient = new MessageClientGUI(hostId, regPort, userId);
-   }
+       String hostId="localhost";
+       String port="8080";
+       String userId = "Tim.Lindquist";
+       if (args.length >= 3){
+          hostId=args[1];
+          port=args[2];
+          userId=args[0];
+       }
+       
+       MessageClientGUI runGUI = new MessageClientGUI(hostId, port, userId);
+    }
 }
 
 

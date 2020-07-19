@@ -1,27 +1,17 @@
-package ser321.assign2.lindquis.server;
+package server;
+
+//package ser321.assign2.lindquis.server;
 
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.rmi.RemoteException;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Vector;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
-
-import java.rmi.server.*;
-import java.rmi.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.Set;
-import java.util.Date;
 
 /*
  * Copyright 2019 Tiffany Hernandez,
@@ -47,7 +37,7 @@ import java.util.Date;
  * @version January 2019
 */
 
-public class MessageServerImpl extends UnicastRemoteObject implements java.io.Serializable, MessageServerInterface{
+public class MessageServerImpl implements java.io.Serializable, MessageServerInterface{
     private static final String patt = "EEE MMM d K:mm:ss yyyy";
     private String libName; //the name of the message library that has been manually made
 
@@ -55,13 +45,12 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
     private static Vector<Message> sentMessages = new Vector<Message>();//TO HOLD SENT MESSAGES
 
     Date today = new Date();   
-
-
+    
     /**
      * Default Constructor
      * @throws RemoteException
      */
-    public MessageServerImpl() throws RemoteException {
+    public MessageServerImpl(){
       try{
         	this.libName = "noname";
          
@@ -77,7 +66,7 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
      * @param String
      * @throws RemoteException
      */
-    public MessageServerImpl(String fn) throws RemoteException{
+    public MessageServerImpl(String fn){
         try {
              FileInputStream in = new FileInputStream(fn);
              JSONObject obj = new JSONObject(new JSONTokener(in));
@@ -99,6 +88,83 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
             //System.out.print("Ex:" + ex.getMessage());
         }
     }
+    
+
+    public String getMessageBody(String header){
+        Message mes = null;
+        Vector<Message> messagesReceived;
+        messagesReceived = mes.getMessagesReceived();
+        String messageBody = "";
+        
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(header)) {
+                messageBody = m.getMessageBody();
+                break;
+            }
+        } 
+        return messageBody;
+    }
+    
+    public String getDate(String header){
+        Message mes = null;
+        Vector<Message> messagesReceived;
+        messagesReceived = mes.getMessagesReceived();
+        String date = "";
+        
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(header)) {
+                date = m.getDate();
+                break;
+            }
+        } 
+        return date;
+    }
+    
+    public String getSubject(String header){
+        Message mes = null;
+        Vector<Message> messagesReceived;
+        messagesReceived = mes.getMessagesReceived();
+        String subject = "";
+        
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(header)) {
+                subject = m.getSubject();
+                break;
+            }
+        } 
+        return subject;
+    }
+    
+    public String getName(String header){
+        Message mes = null;
+        Vector<Message> messagesReceived;
+        messagesReceived = mes.getMessagesReceived();
+        String name = "";
+        
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(header)) {
+                name = m.getName();
+                break;
+            }
+        }
+        return name; 
+    }
+    
+    public String getToUser(String header){
+        Message mes = null;
+        Vector<Message> messagesReceived;
+        messagesReceived = mes.getMessagesReceived();
+        String toUser = "";
+        
+        for(Message m : messagesReceived) {
+            if(m.getHeader().equals(header)) {
+                toUser = m.getToUser();
+                break;
+            }
+        }
+        return toUser;
+    }
+    
     
     public void setLibName(String aName){
         libName = aName;
@@ -135,7 +201,7 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
      * @param Attributes that make up a Message Object
      * @throws RemoteException
      */
-    public void addMessagetoLib(String name, String header, String message, String d, String s, String t) throws RemoteException {
+    public void addMessagetoLib(String name, String header, String message, String d, String s, String t) {
         
         if(libName.equals("Tue 18 Dec 5:32:29 2019")){
             messages.addElement(new Message(name, header, message, d, s, t ));
@@ -147,6 +213,23 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
         
     }
     
+    public boolean addMessagetoLib(Message m){
+        
+        boolean ret = false;
+        
+        if(libName.equals("Tue 18 Dec 5:32:29 2019")){
+            messages.addElement(m);
+            ret = messages.contains(m);
+        }else {
+            //When a user selects "sent," a message object is made:
+            //Headers then get added to the headers string in the Message class
+            sentMessages.addElement(m);
+        }
+        
+        return ret;
+        
+    }  
+    
     
      /**
      * Initiates messages by sending strings to become json
@@ -154,7 +237,7 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
      * Used as default inbox messages for the users. 
      * @throws RemoteException
      */
-    public void createLibrary() throws RemoteException{
+    public void createLibrary() {
     	try{
 		        MessageServerImpl mailIntake = new MessageServerImpl();
 		        mailIntake.setLibName("Tue 18 Dec 5:32:29 2019");
@@ -223,10 +306,10 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
      * headings according to the user passed in. 
      * Used so the GUI can filter out messages for that user.
      * @param String
-     * @throws RemoteException
+     * @throws RemoteException 
      * @returns String Array
      */
-    public String[] getMessageFromHeaders(String toAUserName) throws RemoteException{
+    public String[] getMessageFromHeaders(String toAUserName){
 
         System.out.println("USERNAME IN MESSAGE CLASS" + toAUserName);
         
@@ -255,7 +338,7 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
      * @throws RemoteException
      * @returns Message Object
      */
-    public Message getMessage(String header)throws RemoteException {
+    public Message getMessage(String header) {
         
         Message mes = null;
         Message v = new Message();
@@ -273,11 +356,10 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
      * of the list of messages on the servers side.
      * It is also a shared method on the interface.
      * @param Strings
-     * @throws RemoteException
      * @returns boolean
      */
     @Override
-    public boolean deleteMessage(String header, String toAUserName) throws RemoteException{
+    public boolean deleteMessage(String header, String toAUserName){
         Boolean rem_elem = false;
         
         System.out.println("HEADER TO BE REMOVED: " + header);
@@ -304,32 +386,12 @@ public class MessageServerImpl extends UnicastRemoteObject implements java.io.Se
         return false;
     }
 
-
-    
-    public static void main(String args[]){
-      try {
-         String hostId="localhost";
-         String regPort="1099";
-         if (args.length >= 2){
-	    hostId=args[0];
-            regPort=args[1];
-         }
-         //System.setSecurityManager(new RMISecurityManager()); // rmisecmgr deprecated
-         MessageServerInterface obj = new MessageServerImpl();
-
-         //Initialize the library of messages:
-         MessageServerImpl start = new MessageServerImpl();
-         start.createLibrary();
-
-         Naming.rebind("rmi://"+hostId+":"+regPort+"/EmployeeServer", obj);
-         System.out.println("Server bound in registry as: "+
-                            "rmi://"+hostId+":"+regPort+"/EmployeeServer");
-      }catch (Exception e) {
-         e.printStackTrace();
-      }
-
+    @Override
+    public Vector<Message> getMessagesReceived() {
+        // TODO Auto-generated method stub
+        return null;
     }
-    
+
 
 }
 
